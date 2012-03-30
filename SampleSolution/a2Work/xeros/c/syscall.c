@@ -65,3 +65,19 @@ unsigned int syssleep( unsigned int t ) {
     syscall( SYS_SLEEP, t );
 }
 
+int syssighandler( int signal, void (*handler)(void *))
+{
+	return 1;
+}
+void sigreturn(void *old_sp)
+{
+	syscall(SYS_RET,old_sp);
+}
+int syskill(int PID, int signal_number)
+{
+	return syscall(SYS_KILL,PID,signal_number);
+}
+int syssigwait()
+{
+	return syscall(SYS_WAIT);
+}
