@@ -40,6 +40,7 @@ extern void kfree(void *ptr);
 #define STATE_STOPPED   0
 #define STATE_READY     1
 #define STATE_SLEEP     2
+#define STATE_SIGWAIT		3
 
 #define SYS_STOP        0
 #define SYS_YIELD       1
@@ -48,8 +49,14 @@ extern void kfree(void *ptr);
 #define SYS_GETPID      8
 #define SYS_PUTS        9
 #define SYS_SLEEP       10
+#define SYS_HANDLER     11
+#define SYS_RET	        12
+#define SYS_KILL	13
+#define SYS_WAIT	14
 
-
+#define NSIG_MIN	0
+#define NSIG_MAX	31
+#define PID_NOTEXIST -15;
 
 
 typedef void    (*funcptr)(void);
@@ -67,6 +74,9 @@ struct struct_pcb {
   int         ret;
   int         sleepdiff;
   long        args;
+  unsigned int signal_handlers[32];
+  int 				signal;
+  int					current_signal;
 };
 
 extern pcb   *findPCB( int pid);
@@ -99,7 +109,6 @@ extern pcb      *next( void );
 extern void     contextinit( void );
 extern int      contextswitch( pcb *p );
 extern int      create( funcptr fp, int stack );
-
 
 
 extern void     root( void );

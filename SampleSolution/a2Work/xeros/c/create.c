@@ -58,10 +58,18 @@ int      create( funcptr fp, int stack ) {
 
     cf->esp = (int)(cf + 1);
     cf->ebp = cf->esp;
+    
+    int *ptr = (int*)cf->esp;
+    *ptr=(int)&systop;
+    
     p->esp = (int)cf;
     p->state = STATE_READY;
     p->pid = nextpid++;
-
+		// no signals at the start
+		p->signal = 0;
+		//No current signal being served at the begining
+		p->current_signal = -1;
+		
     ready( p );
     return( p->pid );
 }

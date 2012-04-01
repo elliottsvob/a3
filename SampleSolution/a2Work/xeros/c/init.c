@@ -1,4 +1,4 @@
-/* initialize.c - initproc */
+/* init.c - initproc */
 
 #include <i386.h>
 #include <kernel.h>
@@ -6,7 +6,7 @@
 extern	int	entry();        /* start of kernel image, use &start    */
 extern	int	end();          /* end of kernel image, use &end        */
 extern  long	freemem; 	/* start of free memory (set in i386.c) */
-extern char	*maxaddr;	/* max memory address (set in i386.c)	*/
+extern  char	*maxaddr;	/* max memory address (set in i386.c)	*/
 
 /************************************************************************/
 /***				NOTE:				      ***/
