@@ -60,7 +60,7 @@ int      create( funcptr fp, int stack ) {
     cf->ebp = cf->esp;
     
     int *ptr = (int*)cf->esp;
-    *ptr=(int)&systop;
+    *ptr=(int) &sysstop;
     
     p->esp = (int)cf;
     p->state = STATE_READY;

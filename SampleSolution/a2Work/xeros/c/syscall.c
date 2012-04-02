@@ -69,7 +69,6 @@ unsigned int syssleep( unsigned int t ) {
 int syssighandler( int signal, void (*handler)(void *))
 /*****************************/
 {
-
 	return syscall(SYS_HANDLER, signal, handler);
 }
 
