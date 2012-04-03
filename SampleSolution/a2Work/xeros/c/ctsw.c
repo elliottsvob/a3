@@ -6,6 +6,7 @@
 
 void _KernelEntryPoint();
 void _TimerEntryPoint();
+void _KeyBoardEntryPoint();
 
 unsigned int        saveESP;
 unsigned int        rc;
@@ -58,6 +59,11 @@ int contextswitch( pcb *p ) {
         movl    %%eax, 28(%%esp) \n\
         popa \n\
         iret \n\
+    _KeyBoardEntryPoint: \n\
+    		cli   \n\
+        pusha \n\
+        movl    $2, %%ecx \n\
+        jmp     _CommonJumpPoint \n \
     _TimerEntryPoint: \n\
         cli   \n\
         pusha \n\
@@ -88,13 +94,22 @@ int contextswitch( pcb *p ) {
 
     /* save esp and read in the arguments
      */
+    
     p->esp = saveESP;
-    if( trapNo ) {
+    switch( trapNo ) {
+   // kprintf("Stack pointer(p-esp) is: %x\n", p->esp);
 	/* return value (eax) must be restored, (treat it as return value) */
-	p->ret = rc;
-	rc = SYS_TIMER;
-    } else {
-        p->args = args;
+			case 1:
+				p->ret = rc;
+				rc = SYS_TIMER;
+				break;
+			case 2:
+				p->ret = rc;
+				rc = SYS_KEY;
+				break;
+			default:
+   			p->args = args;
+   			break;
     }
 
     return rc;
@@ -102,9 +117,10 @@ int contextswitch( pcb *p ) {
 
 void contextinit( void ) {
 /*******************************/
-  kprintf("Init called\n");
+  //kprintf("Init called\n");
     set_evec( KERNEL_INT, &_KernelEntryPoint );
     set_evec( TIMER_INT, &_TimerEntryPoint );
+    set_evec( KEY_INT, &_KeyBoardEntryPoint );
     initPIT( 100 );
 }
 

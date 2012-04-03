@@ -35,6 +35,7 @@ extern void kfree(void *ptr);
 #define MAX_PROC        64
 #define KERNEL_INT      80
 #define TIMER_INT       (TIMER_IRQ + 32)
+#define KEY_INT					33
 #define PROC_STACK      (4096 * 4)
 
 #define STATE_STOPPED   0
@@ -53,16 +54,45 @@ extern void kfree(void *ptr);
 #define SYS_RET	        12
 #define SYS_KILL				13
 #define SYS_WAIT				14
+
 #define SYS_OPEN				15
 #define SYS_CLOSE				16
 #define SYS_WRITE				17
 #define SYS_READ				18
 #define SYS_IOCTL				19
 
-#define SIG_MIN		0
-#define SIG_MAX		31
-#define PID_NOTEXIST 	-15;
+#define SYS_KEY					20
 
+#define SIG_MIN					0
+#define SIG_MAX					31
+#define PID_NOTEXIST 		-15
+
+#define NUM_DEV					2
+
+typedef struct 	devsw {
+
+	int dvnum;
+	char *dvname;
+	int (*dvinit)();
+	int (*dvopen)();
+	int (*dvclose)();
+	int (*dvread)();
+	int (*dvwrite)();
+	int (*dvseek)();
+	int (*dvgetc)();
+	int (*dvputc)();
+	int (*dvcntl)();
+	void *dvcsr;
+	void *dvivec;
+	void *dvovec;
+	int (*dviint)();
+  int (*dvoint)();
+  void *dvioblk;
+	int dvminor;
+	
+} devsw;
+
+extern devsw device_table[NUM_DEV]; 
 
 typedef void    (*funcptr)(void);
 
@@ -82,6 +112,7 @@ struct struct_pcb {
   unsigned int signal_handlers[32];
   int 		signal;
   int		current_signal;
+  devsw * fdt[4];
 };
 
 extern pcb   *findPCB( int pid);
@@ -105,6 +136,8 @@ typedef struct context_frame {
 
 extern pcb      proctab[MAX_PROC];
 
+
+
 extern void     kmeminit( void );
 extern void     *kmalloc( int size );
 extern void     dispatch( void );
@@ -126,6 +159,6 @@ int syscreate(void (*func)(), int stack);
 int sysyield(void);
 int sysstop(void);
 
-
+extern void print_handlers(pcb * p);
 
 #endif

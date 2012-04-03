@@ -6,7 +6,6 @@
 
  int syscall( int req, ... ) {
 /**********************************/
-
     va_list	ap;
     int		rc;
 
@@ -22,9 +21,9 @@
         : "g" (req), "g" (ap), "i" (KERNEL_INT)
         : "%eax" 
     );
- 
+ 	
     va_end( ap );
-
+		//kprintf("Va_end in syscall.c\n");
     return( rc );
 }
 

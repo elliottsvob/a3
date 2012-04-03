@@ -49,6 +49,7 @@ initproc()				/* The beginning */
 
         kprintf("Creating Root Process\n");
 	create( root, PROC_STACK );
+	
 	kprintf("System initialization completed\n");
   
 	dispatch();
@@ -64,8 +65,9 @@ initproc()				/* The beginning */
 static void idleproc( void )	
 {
     int	i;
-    //    kprintf("I");
+       
     for( i = 0; ; i++ ) {
+      // kprintf("I");
        sysyield();
     }
 }

@@ -38,18 +38,25 @@ void     dispatch( void ) {
 	int		device_no;
 
 	for( p = next(); p; ) {
-		//kprintf("Process %x selected stck %x\n", p, p->esp);
-		
+		//kprintf("Process %x selected stck %x, signal %x\n", p, p->esp,p->signal);
+		//int q = 999999;
+		//for(; q >0; q--){}
 		//Checks whether the process has signals and sets up the context frame if its does
+		if(p->pid ==4){
+			//kprintf("PROCESSING PID 4\n");
+		}
 		if(p->signal){
 			//TODO fix method call
 			//signal (p);
-			 kprintf("I've been signaled\n");
+			//kprintf("I've been signaled\n");			 
 			int retu = signal(p->pid, get_priority_signal(p));
+		//	kprintf("context frame set up set up\n");
 		}
-
-		int i;
+			enable_irq(1,0);
+		
+		int i,c;
 		r = contextswitch( p );
+		//kprintf("-------------------------------\n");
 		switch( r ) {
 		case( SYS_CREATE ):
 			ap = (va_list)p->args;
@@ -92,21 +99,27 @@ void     dispatch( void ) {
 			handler = va_arg(ap, void*);
 			
 				
-			if(!is_valid_signal(sig) /*TODO|| !is_valid_handler(&handler)*/){
+			if(!is_valid_signal(sig) /*|| !is_valid_handler(&handler)*/){
 				p->ret =-1;	
 			}
 			else 
 			{
-				p->signal_handlers[sig] = (unsigned int) &handler;
+				p->signal_handlers[sig] = handler;
 				print_handlers(p);				
 				p->ret =0;
 			}
-			p = next();	
+			//p = next();	
 			break;
 		case (SYS_RET):
+			
 			ap = (va_list)p->args;
 			p->esp = va_arg(ap, long);
-			p = next();
+			p->signal -= p->current_signal;
+			p->current_signal = -1;
+			kprintf("foo printed\n");		
+			
+	    //ready(p);	  
+			//p = next();
 			break;
 		case (SYS_KILL):
 			ap = (va_list)p->args;
@@ -119,35 +132,36 @@ void     dispatch( void ) {
 			
 			if ( rc == -1){
 				p->ret = PID_NOTEXIST;
-				kprintf("signal sent -1\n");
+				
 			}
 			else if ( rc == -2){
 				p->ret = SYSERR;
-				kprintf("signal sent -2\n");
+				
 			}else{
-				p->ret = rc;
+				p->ret = rc; 
 				kprintf("signal sent\n");
-			}			
+			}
+			 
+			//p=next();			
 			break;
 
 		case (SYS_WAIT):
 			//default return value is SYS_ERR (-1)
-			// when signal is received it is changed to 1
-			p->ret =SYSERR;	
-			//TODO once the signal is delivered the return value shoul be changed to 1
+			//when signal is received it is changed to 1
+			p->ret =SYSERR;			
 			p->state = STATE_SIGWAIT;
 			p = next();
 			break;
 		case (SYS_OPEN):	
 			ap = (va_list)p->args;
 			device_no = va_arg(ap, int);
-			p->ret = di_open(device_no);
+			p->ret = di_open(device_no,p);
 			
 			break;
 		case (SYS_CLOSE):
 			ap = (va_list)p->args;
 			fd = va_arg(ap,int);
-			p->ret=di_close(fd);
+			p->ret=di_close(fd,p);
 		
 			break;
 		case (SYS_WRITE):
@@ -155,31 +169,45 @@ void     dispatch( void ) {
 			fd = va_arg(ap, int);
 			buff = va_arg(ap, void*);
 			bufflen = va_arg(ap, int);	
-			p->ret=di_write(fd,buff,bufflen);		
+			p->ret=di_write(fd,buff,bufflen,p);		
+			
 			break;
 		case (SYS_READ):
 			ap = (va_list)p->args;
 			fd = va_arg(ap, int);
 			buff = va_arg(ap, void*);
 			bufflen = va_arg(ap, int);
-			p->ret=di_read(fd,buff,bufflen);
+			p->ret=di_read(fd,buff,bufflen,p);
 			break;
 		case (SYS_IOCTL):	
 			ap = (va_list)p->args;
 			fd = va_arg(ap, int);
 			command = va_arg(ap, unsigned long );
 			ioctl_list = va_arg(ap, va_list);
-			p->ret=di_ioctl(fd,command,ioctl_list);
+			p->ret=di_ioctl(fd,command,p,ioctl_list);
+			
 			break;
+		
+		case (SYS_KEY):
+		
+			
+			  c=inb(0x60);
+			  c=kbtoa(c);
+				kprintf("%c\n",c);
+		
+		
+			kprintf("KEYBOARD INTERUPT\n");	
+			end_of_intr();
+			
+			break;
+			
 		default:
 			kprintf( "Bad Sys request %d, pid = %d\n", r, p->pid );
 		}
+		
+		
 	}
 	
-	
-	
-	
-
 	kprintf( "Out of processes: dying\n" );
 	
 	for( ;; );
@@ -220,7 +248,7 @@ extern pcb      *next( void ) {
 			tail = NULL;
 		}
 	} else {
-		kprintf( "BAD\n" );
+		kprintf( "NO next process\n" );
 		for(;;);
 	}
 
@@ -264,15 +292,13 @@ extern int is_valid_signal(int sig)
 extern int get_priority_signal(pcb* p)
 {
 	//Helper method.  gets the highest priority signal of the process
-	int a;
+	
 	int sig = p->signal;
 	int i;
-	for (i = SIG_MAX; i >=SIG_MIN; i--){
-		a>>i;
-		if(a){
+	for (i = SIG_MAX; i >=SIG_MIN; i--){		
+		if(sig>>i){
 			return i;
-		}
-		a = sig;
+		}		
 	}
 	return -1;
 }
@@ -290,21 +316,29 @@ extern int signal_process(int pid, int sig_no)
 		
 		return -1;
 	}
+	kprintf("State is %d\n", sig_p->state);
+	 if(sig_p->state == STATE_SIGWAIT){		
+	 			sig_p->ret=1;
+	    	ready(sig_p);
+	    }
+
 	//Checks for a defined signal handler, ignored otherwise
-	
+	int i = sig_p->signal_handlers[sig_no];
+	//kprintf("Signal handler address is %x\n", i);
 	if (sig_p->signal_handlers[sig_no]){
-	kprintf("PID TO signal is: %d, Signal number is: %d\n", pid, sig_no);
+		//kprintf("PID TO signal is: %d, Signal number is: %d\n", pid, sig_no);
 		//int sig_set = (1<<sig);		
 		int sig_set = (1<<sig_no);
 		if(!(sig_p->signal & sig_set)){
-			kprintf("signal sent\n");
+			//kprintf("p->pid is: %d\n",sig_p->pid );
 			sig_p->signal+= sig_set;
+			//kprintf("p=>signal is: %d\n",sig_p->signal );
 		}
 	}			
 	return 0;
 }
 
-void print_handlers(pcb * p){
+ void print_handlers(pcb * p){
 	int i;
 	int address;
 	for(i = 0; i < 10; i ++){
