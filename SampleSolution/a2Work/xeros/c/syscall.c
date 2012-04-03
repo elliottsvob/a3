@@ -69,6 +69,7 @@ unsigned int syssleep( unsigned int t ) {
 int syssighandler( int signal, void (*handler)(void *))
 /*****************************/
 {
+	
 	return syscall(SYS_HANDLER, signal, handler);
 }
 
@@ -81,6 +82,7 @@ void sigreturn(void *old_sp)
 int syskill(int PID, int signal_number)
 /*****************************/
 {
+	
 	return syscall(SYS_KILL,PID,signal_number);
 }
 

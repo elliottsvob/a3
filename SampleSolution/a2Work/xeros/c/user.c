@@ -8,42 +8,63 @@
 void producer( void ) {
 /****************************/
 
-    int         i;
-    char        buff[100];
+/*    int         i;*/
+/*    char        buff[100];*/
 
-    for( i = 0; i < 10; i++ ) {
+/*    for( i = 0; i < 10; i++ ) {*/
 
-      sprintf(buff, "Produce %d\n", i);
-      sysputs(buff);
-      sysyield();
-    }
-    for (i = 0; i < 200; i++) {
-      sysputs("P");
-      syssleep(1500);
-    }
+/*      sprintf(buff, "Produce %d\n", i);*/
+/*      sysputs(buff);*/
+/*      sysyield();*/
+/*    }*/
+/*    for (i = 0; i < 200; i++) {*/
+/*      sysputs("P");*/
+/*      syssleep(1500);*/
+/*    }*/
 
-    sysstop();
+/*    sysstop();*/
+}
+void print_foo()
+{
+	char buff[100];
+	int i = 69;
+	sprintf(buff, "print_foo %d\n",i);
+	sysputs(buff);
+	return;	
 }
 
 void consumer( void ) {
 /****************************/
 
-    int         i;
-    char        buff[100];
+/*    int         i;*/
+/*    char        buff[100];*/
 
-    for( i = 0; i < 10; i++ ) {
-      sprintf(buff, "Consume %d\n", i);
-      sysputs( buff );
-      sysyield();
-    }
+/*    for( i = 0; i < 10; i++ ) {*/
+/*      sprintf(buff, "Consume %d\n", i);*/
+/*      sysputs( buff );*/
+/*      sysyield();*/
+/*    }*/
 
 
-    for (i = 0; i < 200; i++) {
-      sysputs("C");
-      syssleep(10000);
-    }
+/*    for (i = 0; i < 200; i++) {*/
+/*      sysputs("C");*/
+/*      syssleep(10000);*/
+/*    }*/
 
-    sysstop();
+/*    sysstop();*/
+	
+	syssighandler(3,&print_foo);
+	for(;;){
+		//kprintf("babab\n");
+		sysyield();
+		}
+
+	
+
+
+
+
+
 }
 
 void     root( void ) {
@@ -56,6 +77,9 @@ void     root( void ) {
     sysyield();
    
     syscreate( &producer, 4096 );
-    syscreate( &consumer, 4096 );
+    int pid = syscreate( &consumer, 4096 );
+    
+    syskill(pid,3);
+   
     sysstop();
 }

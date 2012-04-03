@@ -44,6 +44,7 @@ void     dispatch( void ) {
 		if(p->signal){
 			//TODO fix method call
 			//signal (p);
+			 kprintf("I've been signaled\n");
 			int retu = signal(p->pid, get_priority_signal(p));
 		}
 
@@ -89,12 +90,15 @@ void     dispatch( void ) {
 			ap = (va_list)p->args;
 			sig = va_arg(ap, int);
 			handler = va_arg(ap, void*);
-			if(!is_valid_signal(sig) || !is_valid_handler(&handler)){
+			
+				
+			if(!is_valid_signal(sig) /*TODO|| !is_valid_handler(&handler)*/){
 				p->ret =-1;	
 			}
 			else 
 			{
 				p->signal_handlers[sig] = (unsigned int) &handler;
+				print_handlers(p);				
 				p->ret =0;
 			}
 			p = next();	
@@ -108,17 +112,21 @@ void     dispatch( void ) {
 			ap = (va_list)p->args;
 			pid = va_arg(ap, int);
 			sig = va_arg(ap, int);
+			 
 			//The signal method is supposed to do something different.
 			//what was in the signal method is now in a new process	
 			rc = signal_process(pid,sig);			
 			
 			if ( rc == -1){
 				p->ret = PID_NOTEXIST;
+				kprintf("signal sent -1\n");
 			}
 			else if ( rc == -2){
 				p->ret = SYSERR;
+				kprintf("signal sent -2\n");
 			}else{
 				p->ret = rc;
+				kprintf("signal sent\n");
 			}			
 			break;
 
@@ -279,15 +287,33 @@ extern int signal_process(int pid, int sig_no)
 	//find target process and check if it exists
 	sig_p = findPCB(pid);
 	if(!sig_p){
+		
 		return -1;
 	}
 	//Checks for a defined signal handler, ignored otherwise
+	
 	if (sig_p->signal_handlers[sig_no]){
+	kprintf("PID TO signal is: %d, Signal number is: %d\n", pid, sig_no);
 		//int sig_set = (1<<sig);		
 		int sig_set = (1<<sig_no);
 		if(!(sig_p->signal & sig_set)){
+			kprintf("signal sent\n");
 			sig_p->signal+= sig_set;
 		}
 	}			
 	return 0;
 }
+
+void print_handlers(pcb * p){
+	int i;
+	int address;
+	for(i = 0; i < 10; i ++){
+		address = p->signal_handlers[i];
+		kprintf("Signal handler: %d, is address:%x\n", i, address);
+	}
+}
+	
+
+
+
+
