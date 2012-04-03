@@ -1,5 +1,5 @@
 /* disp.c : dispatcher
- */
+*/
 
 
 #include <i386.h>
@@ -16,189 +16,221 @@ extern int end();
 //extern int 	signal(int pid, int sig_no);
 
 void     dispatch( void ) {
-/********************************/
+	/********************************/
 
-    pcb         *p;
-    int         r;
-    funcptr     fp;
-    int         stack;
-    va_list     ap;
-    char       *str;
-    int         len;
-    int 	sig;
-    void* 	handler;
-    int		pid;
-    int		sig_set;
-    int 	rc;
+	pcb         *p;
+	int         r;
+	funcptr     fp;
+	int         stack;
+	va_list     ap;
+	char       *str;
+	int         len;
+	int 	sig;
+	void* 	handler;
+	int		pid;
+	int		sig_set;
+	int 	rc;
+	int 	fd;
+	void*   buff;
+	int 	bufflen
+	unsigned long command
+	va_list  	ioctl_list;
+	int		device_no;
 
-    for( p = next(); p; ) {
-    //kprintf("Process %x selected stck %x\n", p, p->esp);
-      
-    //Checks whether the process has signals and sets up the context frame if its does
-    	if(p->signal){
-		//TODO fix method call
-		//signal (p);
-		int retu = signal(p->pid, get_priority_signal(p));
-    	}
-
-	int i;
-	r = contextswitch( p );
-	switch( r ) {
-	case( SYS_CREATE ):
-		ap = (va_list)p->args;
-		fp = (funcptr)(va_arg( ap, int ) );
-		stack = va_arg( ap, int );
-		p->ret = create( fp, stack );
-	break;
-	case( SYS_YIELD ):
-	ready( p );
-	p = next();
-	break;
-      case( SYS_STOP ):
-	p->state = STATE_STOPPED;
-	p = next();
-	break;
-      case( SYS_PUTS ):
-	  ap = (va_list)p->args;
-	  str = va_arg( ap, char * );
-	  kprintf( "%s", str );
-	  p->ret = 0;
-	  break;
-      case( SYS_GETPID ):
-	p->ret = p->pid;
-	break;
-      case( SYS_SLEEP ):
-	ap = (va_list)p->args;
-	len = va_arg( ap, int );
-	sleep( p, len );
-	p = next();
-	break;
-      case( SYS_TIMER ):
-	tick();
-	ready( p );
-	p = next();
-	end_of_intr();
-	break;
-	case (SYS_HANDLER):
-	ap = (va_list)p->args;
-	sig = va_arg(ap, int);
-	handler = va_arg(ap, void*);
-	if(!is_valid_signal(sig) || !is_valid_handler(&handler)){
-		p->ret =-1;	
-	}
-	else 
-	{
-		p->signal_handlers[sig] = (unsigned int) &handler;
-		p->ret =0;
-	}
-	p = next();	
-	break;
-      case (SYS_RET):
-	ap = (va_list)p->args;
-	p->esp = va_arg(ap, long);
-	p = next();
-	break;
-      case (SYS_KILL):
-	ap = (va_list)p->args;
-	pid = va_arg(ap, int);
-	sig = va_arg(ap, int);
-	//The signal method is supposed to do something different.
-	//what was in the signal method is now in a new process	
-	rc = signal_process(pid,sig);
-	
-	
-	if ( rc == -1){
-		p->ret = PID_NOTEXIST;
+	for( p = next(); p; ) {
+		//kprintf("Process %x selected stck %x\n", p, p->esp);
+		
+		//Checks whether the process has signals and sets up the context frame if its does
+		if(p->signal){
+			//TODO fix method call
+			//signal (p);
+			int retu = signal(p->pid, get_priority_signal(p));
 		}
-	else if ( rc == -2){
-		p->ret = SYSERR;
-	}else{
-		p->ret = rc;
-	}			
-	break;
 
-      case (SYS_WAIT):
-	//default return value is SYS_ERR (-1)
-	// when signal is received it is changed to 1
-	p->ret =SYSERR;	
-	//TODO once the signal is delivered the return value shoul be changed to 1
-	p->state = STATE_SIGWAIT;
-	p = next();
-	break;
-      default:
-	kprintf( "Bad Sys request %d, pid = %d\n", r, p->pid );
-      }
-    }
+		int i;
+		r = contextswitch( p );
+		switch( r ) {
+		case( SYS_CREATE ):
+			ap = (va_list)p->args;
+			fp = (funcptr)(va_arg( ap, int ) );
+			stack = va_arg( ap, int );
+			p->ret = create( fp, stack );
+			break;
+		case( SYS_YIELD ):
+			ready( p );
+			p = next();
+			break;
+		case( SYS_STOP ):
+			p->state = STATE_STOPPED;
+			p = next();
+			break;
+		case( SYS_PUTS ):
+			ap = (va_list)p->args;
+			str = va_arg( ap, char * );
+			kprintf( "%s", str );
+			p->ret = 0;
+			break;
+		case( SYS_GETPID ):
+			p->ret = p->pid;
+			break;
+		case( SYS_SLEEP ):
+			ap = (va_list)p->args;
+			len = va_arg( ap, int );
+			sleep( p, len );
+			p = next();
+			break;
+		case( SYS_TIMER ):
+			tick();
+			ready( p );
+			p = next();
+			end_of_intr();
+			break;
+		case (SYS_HANDLER):
+			ap = (va_list)p->args;
+			sig = va_arg(ap, int);
+			handler = va_arg(ap, void*);
+			if(!is_valid_signal(sig) || !is_valid_handler(&handler)){
+				p->ret =-1;	
+			}
+			else 
+			{
+				p->signal_handlers[sig] = (unsigned int) &handler;
+				p->ret =0;
+			}
+			p = next();	
+			break;
+		case (SYS_RET):
+			ap = (va_list)p->args;
+			p->esp = va_arg(ap, long);
+			p = next();
+			break;
+		case (SYS_KILL):
+			ap = (va_list)p->args;
+			pid = va_arg(ap, int);
+			sig = va_arg(ap, int);
+			//The signal method is supposed to do something different.
+			//what was in the signal method is now in a new process	
+			rc = signal_process(pid,sig);			
+			
+			if ( rc == -1){
+				p->ret = PID_NOTEXIST;
+			}
+			else if ( rc == -2){
+				p->ret = SYSERR;
+			}else{
+				p->ret = rc;
+			}			
+			break;
 
-    kprintf( "Out of processes: dying\n" );
-    
-    for( ;; );
+		case (SYS_WAIT):
+			//default return value is SYS_ERR (-1)
+			// when signal is received it is changed to 1
+			p->ret =SYSERR;	
+			//TODO once the signal is delivered the return value shoul be changed to 1
+			p->state = STATE_SIGWAIT;
+			p = next();
+			break;
+		case (SYS_OPEN):	
+			ap = (va_list)p->args;
+			device_no = va_arg(ap, int);
+			
+			break;
+		case (SYS_CLOSE):
+			ap = (va_list)p->args;
+			fd = va_arg(ap,int);
+			break;
+		case (SYS_WRITE):
+			ap = (va_list)p->args;
+			fd = va_arg(ap, int);
+			buff = va_arg(ap, void*);
+			bufflen = va_arg(ap, int);			
+			break;
+		case (SYS_READ):
+			ap = (va_list)p->args;
+			fd = va_arg(ap, int);
+			buff = va_arg(ap, void*);
+			bufflen = va_arg(ap, int);
+			break;
+		case (SYS_IOCTL):	
+			ap = (va_list)p->args;
+			fd = va_arg(ap, int);
+			command = va_arg(ap, unsigned long command);
+			ioctl_list = va_arg(ap, va_list);
+			break;
+		default:
+			kprintf( "Bad Sys request %d, pid = %d\n", r, p->pid );
+		}
+	}
+
+	kprintf( "Out of processes: dying\n" );
+	
+	for( ;; );
 }
 
 extern void dispatchinit( void ) {
-/********************************/
+	/********************************/
 
-  //bzero( proctab, sizeof( pcb ) * MAX_PROC );
-  memset(proctab, 0, sizeof( pcb ) * MAX_PROC);
+	//bzero( proctab, sizeof( pcb ) * MAX_PROC );
+	memset(proctab, 0, sizeof( pcb ) * MAX_PROC);
 }
 
 extern void     ready( pcb *p ) {
-/*******************************/
+	/*******************************/
 
-    p->next = NULL;
-    p->state = STATE_READY;
+	p->next = NULL;
+	p->state = STATE_READY;
 
-    if( tail ) {
-        tail->next = p;
-    } else {
-        head = p;
-    }
+	if( tail ) {
+		tail->next = p;
+	} else {
+		head = p;
+	}
 
-    tail = p;
+	tail = p;
 }
 
 extern pcb      *next( void ) {
-/*****************************/
+	/*****************************/
 
-    pcb *p;
+	pcb *p;
 
-    p = head;
+	p = head;
 
-    if( p ) {
-        head = p->next;
-        if( !head ) {
-            tail = NULL;
-        }
-    } else {
-        kprintf( "BAD\n" );
-        for(;;);
-    }
+	if( p ) {
+		head = p->next;
+		if( !head ) {
+			tail = NULL;
+		}
+	} else {
+		kprintf( "BAD\n" );
+		for(;;);
+	}
 
-    p->next = NULL;
-    p->prev = NULL;
-    return( p );
+	p->next = NULL;
+	p->prev = NULL;
+	return( p );
 }
 
 
 extern pcb *findPCB( int pid ) {
-/******************************/
+	/******************************/
 
-    int	i;
+	int	i;
 
-    for( i = 0; i < MAX_PROC; i++ ) {
-        if( proctab[i].pid == pid ) {
-            return( &proctab[i] );
-        }
-    }
+	for( i = 0; i < MAX_PROC; i++ ) {
+		if( proctab[i].pid == pid ) {
+			return( &proctab[i] );
+		}
+	}
 
-    return( NULL );
+	return( NULL );
 }
 
 extern int is_valid_handler(unsigned int address)
 {
 	if (address > (int)&end){
-	kprintf( "Disp.c: invalid handler\n" );
-	 return -1;
+		kprintf( "Disp.c: invalid handler\n" );
+		return -1;
 	}
 	return 1;
 }
@@ -238,13 +270,13 @@ extern int signal_process(int pid, int sig_no)
 	sig_p = findPCB(pid);
 	if(!sig_p){
 		return -1;
-		}
+	}
 	//Checks for a defined signal handler, ignored otherwise
 	if (sig_p->signal_handlers[sig_no]){
 		//int sig_set = (1<<sig);		
 		int sig_set = (1<<sig_no);
 		if(!(sig_p->signal & sig_set)){
-	 		sig_p->signal+= sig_set;
+			sig_p->signal+= sig_set;
 		}
 	}			
 	return 0;

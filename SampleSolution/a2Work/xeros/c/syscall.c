@@ -89,3 +89,33 @@ int syssigwait()
 {
 	return syscall(SYS_WAIT);
 }
+
+extern int sysopen(int device_no)
+/*****************************/
+{
+	return syscall(SYS_OPEN, device_no);
+}
+
+extern int sysclose(int fd)
+/*****************************/
+{
+	return syscall(SYS_CLOSE, fd);
+}
+
+extern int syswrite(int fd, void*buff, int bufflen)
+/*****************************/
+{
+	return syscall(SYS_WRITE, fd, buff, bufflen);	
+}
+
+extern int sysread(int fd, void*buff, int bufflen)
+/*****************************/
+{
+	return syscall(SYS_READ, fd, buff, bufflen);
+}
+
+extern int sysioctl(int fd, unsigned long command, ...)
+{
+	return syscall(SYS_IOCTL, fd, command, ...);
+}
+
