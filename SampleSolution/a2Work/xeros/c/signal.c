@@ -3,11 +3,17 @@
 
 #include <kernel.h>
 
+extern void sigtramp(void(*handler)(void*),void*cntx,void*osp)
+{
+	handler(cntx);
+	sigreturn(osp);	
+}
+
 int signal( int pid, int sig_no) {
 /***********************************************/
 
 	//TODO make this method how it should be...
-	
+	pcb *p = findPCB(pid);
 	int num = get_priority_signal(p);
 	if(is_valid_signal(num) && num>(p->current_signal) ){
 	    p->current_signal = num;
@@ -37,8 +43,4 @@ int signal( int pid, int sig_no) {
 	return 0;
 }
 
-extern void sigtramp(void(*handler)(void*),void*cntx,void*osp)
-{
-	handler(cntx);
-	sigreturn(osp);	
-}
+

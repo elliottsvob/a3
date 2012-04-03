@@ -32,8 +32,8 @@ void     dispatch( void ) {
 	int 	rc;
 	int 	fd;
 	void*   buff;
-	int 	bufflen
-	unsigned long command
+	int 	bufflen;
+	unsigned long command;
 	va_list  	ioctl_list;
 	int		device_no;
 
@@ -133,34 +133,44 @@ void     dispatch( void ) {
 		case (SYS_OPEN):	
 			ap = (va_list)p->args;
 			device_no = va_arg(ap, int);
+			p->ret = di_open(device_no);
 			
 			break;
 		case (SYS_CLOSE):
 			ap = (va_list)p->args;
 			fd = va_arg(ap,int);
+			p->ret=di_close(fd);
+		
 			break;
 		case (SYS_WRITE):
 			ap = (va_list)p->args;
 			fd = va_arg(ap, int);
 			buff = va_arg(ap, void*);
-			bufflen = va_arg(ap, int);			
+			bufflen = va_arg(ap, int);	
+			p->ret=di_write(fd,buff,bufflen);		
 			break;
 		case (SYS_READ):
 			ap = (va_list)p->args;
 			fd = va_arg(ap, int);
 			buff = va_arg(ap, void*);
 			bufflen = va_arg(ap, int);
+			p->ret=di_read(fd,buff,bufflen);
 			break;
 		case (SYS_IOCTL):	
 			ap = (va_list)p->args;
 			fd = va_arg(ap, int);
-			command = va_arg(ap, unsigned long command);
+			command = va_arg(ap, unsigned long );
 			ioctl_list = va_arg(ap, va_list);
+			p->ret=di_ioctl(fd,command,ioctl_list);
 			break;
 		default:
 			kprintf( "Bad Sys request %d, pid = %d\n", r, p->pid );
 		}
 	}
+	
+	
+	
+	
 
 	kprintf( "Out of processes: dying\n" );
 	

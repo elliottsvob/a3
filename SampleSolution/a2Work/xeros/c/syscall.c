@@ -116,6 +116,13 @@ extern int sysread(int fd, void*buff, int bufflen)
 
 extern int sysioctl(int fd, unsigned long command, ...)
 {
-	return syscall(SYS_IOCTL, fd, command, ...);
+	va_list ap;
+	va_start(ap, command);
+
+	int rc = syscall(SYS_IOCTL, fd, command, ap);
+	
+	va_end(ap);
+	
+	return rc;
 }
 

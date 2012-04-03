@@ -51,8 +51,13 @@ extern void kfree(void *ptr);
 #define SYS_SLEEP       10
 #define SYS_HANDLER     11
 #define SYS_RET	        12
-#define SYS_KILL	13
-#define SYS_WAIT	14
+#define SYS_KILL				13
+#define SYS_WAIT				14
+#define SYS_OPEN				15
+#define SYS_CLOSE				16
+#define SYS_WRITE				17
+#define SYS_READ				18
+#define SYS_IOCTL				19
 
 #define SIG_MIN		0
 #define SIG_MAX		31
