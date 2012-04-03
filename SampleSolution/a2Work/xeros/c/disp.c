@@ -10,6 +10,8 @@
 static pcb      *head = NULL;
 static pcb      *tail = NULL;
 
+char kernel_buffer[4];
+int cursor = 0;
 extern int end();
 //extern int entry();
 //extern void 	sigtramp(void(*handler)(void*),void*cntx,void*osp);
@@ -153,10 +155,11 @@ void     dispatch( void ) {
 			p = next();
 			break;
 		case (SYS_OPEN):	
+			
 			ap = (va_list)p->args;
 			device_no = va_arg(ap, int);
 			p->ret = di_open(device_no,p);
-			
+			kprintf("The file descriptor returned is %d\n", p->ret);
 			break;
 		case (SYS_CLOSE):
 			ap = (va_list)p->args;
@@ -178,6 +181,7 @@ void     dispatch( void ) {
 			buff = va_arg(ap, void*);
 			bufflen = va_arg(ap, int);
 			p->ret=di_read(fd,buff,bufflen,p);
+			
 			break;
 		case (SYS_IOCTL):	
 			ap = (va_list)p->args;
@@ -189,15 +193,25 @@ void     dispatch( void ) {
 			break;
 		
 		case (SYS_KEY):
-		
 			
-			  c=inb(0x60);
-			  c=kbtoa(c);
-				kprintf("%c\n",c);
+			if(p->pid !=1){ready(p);};
+			
+				while(inb(0x64)%2 == 1){
+					unsigned char a = inb(0x60);
+					a = kbtoa(a);
 		
-		
-			kprintf("KEYBOARD INTERUPT\n");	
-			end_of_intr();
+					if(a == 4)
+					{
+						kernel_buffer_add(4);
+					}else if( a>=0 && a <=127){
+						//echo keyboard device
+						if (get_kb()){
+							kputc("%c", a);
+							}
+					 }
+					}		
+			
+				end_of_intr();
 			
 			break;
 			
@@ -346,7 +360,28 @@ extern int signal_process(int pid, int sig_no)
 		kprintf("Signal handler: %d, is address:%x\n", i, address);
 	}
 }
+
+
+void kernel_buffer_add(char c)
+{
+	if(cursor<3){
+		kernel_buffer[cursor] = c;
+		cursor++;
+		}
 	
+}
+void reset_cursor()
+{
+	cursor =0;
+}
+void kernel_buffer_clear()
+{
+	int i = 0;
+	for(;i<4;i++)
+	{
+		kernel_buffer[i]=NULL;
+	}
+}
 
 
 

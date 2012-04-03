@@ -12,7 +12,12 @@ int buffercount;
 pcb * myprocess;
 int current_kboard;
 
-int kb_open_noecho(int device_no)
+
+int get_kb(){
+	return current_kboard;
+}
+
+ void kb_open_noecho()
 {
 	//Keyboard device indicator
 	current_kboard = 0;		
@@ -26,42 +31,56 @@ int kb_close_noecho(int fd)
 	enable_irq(1,1);
 }
 
-int kb_write_noecho(int fd, char* buff, int bufflen)
+int kb_write(int fd, char* buff, int bufflen)
 {
 	//Can't write to the Keyboard
 	return -1;
 }
 
-int kb_read_noecho(int fd, unsigned int *buff, int bufflen, pcb * process)
+ int kb_read_noecho(int fd, unsigned int *buff, int bufflen, pcb * process)
 {       
-	//kprintf("buffer length set to %d\n", bufflen);
-  bufferlength = bufflen;
-	thegoodbuffer = buff;
-	myprocess = process;
+	int i = bufflen;
+	unsigned int * b = buff;
 
-	int i;
-	for(i = 0; i < bufferlength; i++){
-		thegoodbuffer[i] = NULL;
-		//kprintf("current buffer = ");
-		//kputc("%lu", thegoodbuffer[i]);
-		//kprintf("\n");
+	while ((inb(0x64) % 2 )==1 && i ){
+		char a = inb(0x60);
+		a = kbtoa(a);
+		*b = a;
+		b++;
+		i--;		
 	}
-    buffercount = 0;
+
+
+
+
+/*	//kprintf("buffer length set to %d\n", bufflen);*/
+/*  bufferlength = bufflen;*/
+/*	thegoodbuffer = buff;*/
+/*	myprocess = process;*/
+
+/*	int i;*/
+/*	for(i = 0; i < bufferlength; i++){*/
+/*		thegoodbuffer[i] = NULL;*/
+/*		//kprintf("current buffer = ");*/
+/*		//kputc("%lu", thegoodbuffer[i]);*/
+/*		//kprintf("\n");*/
+/*	}*/
+/*    buffercount = 0;*/
 }
 
 int kb_ioctl_noecho(int fd, unsigned long command, unsigned int * ioctl_va)
 {
-    va_list ap = (va_list) *(ioctl_va);                     // get the va_list                                
-    
-    if(command == 49){
-        int eoftochange = va_arg(ap, int);
-        seteof(eoftochange);
-    }
-    else
-    {
-        return -1;
-    }
-    va_end(ap);
+/*    va_list ap = (va_list) *(ioctl_va);                     // get the va_list                                */
+/*    */
+/*    if(command == 49){*/
+/*        int eoftochange = va_arg(ap, int);*/
+/*        seteof(eoftochange);*/
+/*    }*/
+/*    else*/
+/*    {*/
+/*        return -1;*/
+/*    }*/
+/*    va_end(ap);*/
 }
 
 

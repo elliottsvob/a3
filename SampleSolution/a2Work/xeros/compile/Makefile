@@ -40,7 +40,7 @@ LDSTR	= -e start -Ttext ${TEXTSPOT}
 #Do NOT modify these lines
 SOBJ = startup.o intr.o 
 IOBJ = init.o i386.o evec.o kprintf.o
-UOBJ = mem.o disp.o ctsw.o syscall.o create.o user.o msg.o sleep.o signal.o di_calls.o scanToASCII.o
+UOBJ = mem.o disp.o ctsw.o syscall.o create.o user.o msg.o sleep.o signal.o di_calls.o scanToASCII.o kbd.o
 
 #Add your sources here
 MY_OBJ = 
@@ -89,3 +89,4 @@ sleep.o: ../c/sleep.c ../h/kernel.h
 signal.o: ../c/signal.c ../h/kernel.h
 di_calls.o: ../c/di_calls.c ../h/kernel.h
 scanToASCII.o: ../c/scanToASCII.c ../h/kernel.h
+kbd.o: ../c/kbd.c ../h/kbd.h ../h/kernel.h

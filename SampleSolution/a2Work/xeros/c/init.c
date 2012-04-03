@@ -18,7 +18,7 @@ extern  char	*maxaddr;	/* max memory address (set in i386.c)	*/
 /***								      ***/
 /************************************************************************/
 
-
+devsw device_table[NUM_DEV];
 pcb proctab[MAX_PROC];          /* process table */
 static void idleproc( void );   /* idle process */
 
@@ -51,6 +51,8 @@ initproc()				/* The beginning */
 	create( root, PROC_STACK );
 	
 	kprintf("System initialization completed\n");
+	
+	device_init();
   
 	dispatch();
   

@@ -69,7 +69,9 @@ extern void kfree(void *ptr);
 
 #define NUM_DEV					2
 
-typedef struct 	devsw {
+#define FDT_SIZE				4
+
+typedef struct {
 
 	int dvnum;
 	char *dvname;
@@ -112,7 +114,7 @@ struct struct_pcb {
   unsigned int signal_handlers[32];
   int 		signal;
   int		current_signal;
-  devsw * fdt[4];
+  devsw * fdt[FDT_SIZE];
 };
 
 extern pcb   *findPCB( int pid);

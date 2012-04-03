@@ -51,7 +51,7 @@ int keyboard_no_echo_write(int fd, char* buff, int bufflen)
 int keyboard_no_echo_read(int fd, unsigned int *buff, int bufflen, pcb * process)
 {       
 	//kprintf("buffer length set to %d\n", bufflen);
-    bufferlength = bufflen;
+  bufferlength = bufflen;
 	thegoodbuffer = buff;
 	myprocess = process;
 
@@ -175,7 +175,9 @@ int copy(unsigned int * keybuff){
 	
     
     
-    if(buffercount == bufferlength || checkForEOF(thegoodbuffer, buffercount)== 2 || checkForNewLine(thegoodbuffer, buffercount) == 2){
+    if(buffercount == bufferlength || 
+    	 checkForEOF(thegoodbuffer, buffercount)== 2 ||
+			 checkForNewLine(thegoodbuffer, buffercount) == 2){
 		//kprintf("process pid = %d\n", myprocess->pid);
         unblock(myprocess);
 		unsigned int * esp_pt;

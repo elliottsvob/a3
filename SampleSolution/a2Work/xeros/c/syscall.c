@@ -94,6 +94,7 @@ int syssigwait()
 extern int sysopen(int device_no)
 /*****************************/
 {
+		
 	return syscall(SYS_OPEN, device_no);
 }
 
