@@ -41,12 +41,11 @@ void     dispatch( void ) {
 
 	for( p = next(); p; ) {
 		//kprintf("Process %x selected stck %x, signal %x\n", p, p->esp,p->signal);
-		//int q = 999999;
-		//for(; q >0; q--){}
+		
 		//Checks whether the process has signals and sets up the context frame if its does
-		if(p->pid ==4){
-			//kprintf("PROCESSING PID 4\n");
-		}
+/*		if(p->pid ==4){*/
+/*			//kprintf("PROCESSING PID 4\n");*/
+/*		}*/
 		if(p->signal){
 			//TODO fix method call
 			//signal (p);
@@ -118,7 +117,7 @@ void     dispatch( void ) {
 			p->esp = va_arg(ap, long);
 			p->signal -= p->current_signal;
 			p->current_signal = -1;
-			kprintf("foo printed\n");		
+			
 			
 	    //ready(p);	  
 			//p = next();
@@ -141,7 +140,7 @@ void     dispatch( void ) {
 				
 			}else{
 				p->ret = rc; 
-				kprintf("signal sent\n");
+				//kprintf("signal sent\n");
 			}
 			 
 			//p=next();			
@@ -208,9 +207,9 @@ void     dispatch( void ) {
 						if (get_kb()){
 							kputc("%c", a);
 							}
+						kernel_buffer_add(a);	
 					 }
-					}		
-			
+					}				
 				end_of_intr();
 			
 			break;
@@ -253,7 +252,7 @@ extern pcb      *next( void ) {
 	/*****************************/
 
 	pcb *p;
-
+ 
 	p = head;
 
 	if( p ) {
@@ -357,7 +356,7 @@ extern int signal_process(int pid, int sig_no)
 	int address;
 	for(i = 0; i < 10; i ++){
 		address = p->signal_handlers[i];
-		kprintf("Signal handler: %d, is address:%x\n", i, address);
+//TODO Commneted		kprintf("Signal handler: %d, is address:%x\n", i, address);
 	}
 }
 

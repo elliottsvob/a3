@@ -72,7 +72,6 @@ extern void kfree(void *ptr);
 #define FDT_SIZE				4
 
 typedef struct {
-
 	int dvnum;
 	char *dvname;
 	int (*dvinit)();
@@ -80,18 +79,8 @@ typedef struct {
 	int (*dvclose)();
 	int (*dvread)();
 	int (*dvwrite)();
-	int (*dvseek)();
-	int (*dvgetc)();
-	int (*dvputc)();
 	int (*dvcntl)();
-	void *dvcsr;
-	void *dvivec;
-	void *dvovec;
-	int (*dviint)();
-  int (*dvoint)();
-  void *dvioblk;
-	int dvminor;
-	
+	int dvminor;	
 } devsw;
 
 extern devsw device_table[NUM_DEV]; 
@@ -153,6 +142,14 @@ extern int      create( funcptr fp, int stack );
 extern int 	signal(int pid, int sig_no);
 
 extern void     root( void );
+extern void     test1( void );
+extern void     test2( void );
+extern void     test3( void );
+extern void     test4( void );
+extern void     test5( void );
+extern void     test6( void );
+extern void     test7( void );
+extern void     test8( void );
 
 void printCF (void * stack);
 
@@ -162,5 +159,7 @@ int sysyield(void);
 int sysstop(void);
 
 extern void print_handlers(pcb * p);
+
+extern char kernel_buffer[4];
 
 #endif

@@ -36,19 +36,27 @@ initproc()				/* The beginning */
 	kprintf("Max addr is %d %x\n", maxaddr, maxaddr);
 
 	kmeminit();
-	kprintf("memory inited\n");
+	//kprintf("memory inited\n");
 	
 	dispatchinit();
-	kprintf("dispatcher inited\n");
+	//kprintf("dispatcher inited\n");
   
 	contextinit();
-	kprintf("context inited inited\n");
+	//kprintf("context inited inited\n");
 
-	kprintf("Creating Idle Process\n");
+	//kprintf("Creating Idle Process\n");
 	create(idleproc, PROC_STACK);
 
-        kprintf("Creating Root Process\n");
-	create( root, PROC_STACK );
+    //    kprintf("Creating Root Process\n");
+		//create( root, PROC_STACK );
+//		create( test1, PROC_STACK );
+//		create( test2, PROC_STACK );
+	//	create( test3, PROC_STACK );
+//		create( test4, PROC_STACK );
+	//	create( test5, PROC_STACK );
+//		create( test6, PROC_STACK );
+	//	create( test7, PROC_STACK );
+		create( test8, PROC_STACK );
 	
 	kprintf("System initialization completed\n");
 	
